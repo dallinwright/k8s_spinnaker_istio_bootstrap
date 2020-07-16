@@ -7,7 +7,7 @@ If you are not using a tool such as Google Kubernetes Engine (GKS) or AWS Elasti
  
  In production environments for all providers, at any scale you would use additional tooling such as infrastructure as code and deployment pipelines to manage the lifecycle of your clusters, but for demo'ing purposes invocation via the CLI is sufficient.
 
-### Generate new cluster configuration
+#### Generate new cluster configuration
 To create a cluster with some sensible defaults, please note the S3 bucket already exists in the AWS account we are attempting to use.
 
 ```bash
@@ -23,19 +23,26 @@ kops create cluster \
 --topology private \
 --bastion="true" \
 --state s3://istio-kops-state \
---name cluster.istio-kops.<domain>.<suffix> \
+--name cluster.cluster.test-k8s.<domain>.<suffix> \
 --ssh-public-key ~/.ssh/id_rsa.pub
 ```
 
-#####  Why Weave?
+####  Why Weave?
 
-### Apply Configuration
+#### Apply Configuration
 ```bash
-kops update cluster --name cluster.istio-kops.<domain>.<suffix> --yes --state s3://istio-kops-state
+kops update cluster --name cluster.test-k8s.<domain>.<suffix> --yes --state s3://istio-kops-state
+```
+
+#### Validate Cluster
+```bash
+kops validae cluster --name cluster.test-k8s.<domain>.<suffix> --state s3://istio-kops-state
 ```
 
 
-### Generate Istio Config
+## Install Istio service mesh
+
+#### Generate Istio Config
 ```bash
 istioctl manifest generate \
 --set profile=default \
@@ -49,10 +56,10 @@ istioctl manifest generate \
 --set values.tracing.enabled=true > generated-manifest.yaml
 ```
 
-### Apply Istio Config
+#### Apply Istio Config
 
 
-### If demoing, and needing a sample app
+#### If demoing, and needing a sample app
 ```bash
 git clone git@github.com:istio/istio.git
 ```
