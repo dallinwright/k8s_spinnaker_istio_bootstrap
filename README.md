@@ -5,7 +5,7 @@ Welcome to the tutorial for setting up a Kubernetes cluster from scratch, then s
 ## Kubernetes Cluster Creation
 
 #### Disclaimer
-If you are not using a tool such as Google Kubernetes Engine (GKS) or AWS Elastic Kubernetes Service (EKS), then you can use a [tool such as Kops](https://github.com/kubernetes/kops) to provision your testing cluster. I would heavily recommend against rolling your own cluster, as management over time can become complex and time-consuming.
+If you are not using a tool such as [Google Kubernetes Engine (GKS)](https://cloud.google.com/kubernetes-engine) or [AWS Elastic Kubernetes Service (EKS)](https://aws.amazon.com/eks/), then you can use a [tool such as Kops](https://github.com/kubernetes/kops) to provision your testing cluster. I would heavily recommend against rolling your own cluster, as management over time can become complex and time-consuming, in the end being generally not worth it unless you have a very specific use case that warrants it.
  
 In production environments for all providers, at any scale you would use additional tooling such as infrastructure as code and deployment pipelines to manage the lifecycle of your clusters, but for demo'ing purposes invocation via the CLI is sufficient. so without further ado, let's get started.
 
