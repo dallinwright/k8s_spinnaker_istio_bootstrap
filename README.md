@@ -6,10 +6,19 @@ Bootstrap repo to spin up a sample kubernetes cluster with Istio
 #### Disclaimer
 If you are not using a tool such as Google Kubernetes Engine (GKS) or AWS Elastic Kubernetes Service (EKS), then you can use a tool such as kops to provision your testing cluster. I would heavily recommend against rolling your own cluster, as management over time can become complex and time consuming.
  
-In production environments for all providers, at any scale you would use additional tooling such as infrastructure as code and deployment pipelines to manage the lifecycle of your clusters, but for demo'ing purposes invocation via the CLI is sufficient.
+In production environments for all providers, at any scale you would use additional tooling such as infrastructure as code and deployment pipelines to manage the lifecycle of your clusters, but for demo'ing purposes invocation via the CLI is sufficient. so without further ado, let's get started.
 
 #### Generate new cluster configuration
-To create a KOPS cluster with some sensible defaults, please note the S3 bucket already exists in the AWS account we are attempting to use.
+To create a KOPS cluster with some sensible defaults, please note this assumes AWS usage, and an S3 bucket already exists in the AWS account we are attempting to use. You also need to have AWS access keys in place, with permissions according to the kops documentation.
+
+#### Export state store
+Before anything, export the state store to an env var. This will reduce the copy + paste a lot.
+
+```bash
+export KOPS_STATE_STORE=s3://yourstatestore
+```
+
+Now, create the cluster config.
 
 ```bash
 kops create cluster \
@@ -23,23 +32,25 @@ kops create cluster \
 --networking weave \
 --topology private \
 --bastion="true" \
---state s3://istio-kops-state \
 --name cluster.cluster.test-k8s.<domain>.<suffix> \
 --ssh-public-key ~/.ssh/id_rsa.pub
 ```
+
+This configuration sets up a bastion host (an ssh jump host) along with a dedicated VPC, route53 dns entries, load balancers, etc. I would recommend reading up on the kops documentation if interested and to fully understand how it works.
 
 ####  Why Weave?
 
 Weave is just an example and one I would recommend for sensitive workloads on powerful machines. It offers one thing that most other CNI's do not and that is network encryption. This does add overhead to network requests and slows down signifigantly communication when compared to layer 3/4 CNI's and if you handle encryption another way, or do not need intercluster encryption Calico is what I would recommend, as it is used internally by Google and very fast.
 
 #### Apply Configuration
+The previous command only outputs the resources it will create but does not apply it. If it looks good, apply it via the following command.
 ```bash
-kops update cluster --name cluster.test-k8s.<domain>.<suffix> --yes --state s3://istio-kops-state
+kops update cluster --name cluster.test-k8s.<domain>.<suffix> --yes
 ```
 
 #### Validate Cluster
 ```bash
-kops validae cluster --name cluster.test-k8s.<domain>.<suffix> --state s3://istio-kops-state
+kops validae cluster --name cluster.test-k8s.<domain>.<suffix>
 ```
 
 
