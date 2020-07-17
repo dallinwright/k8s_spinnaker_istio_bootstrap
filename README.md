@@ -81,35 +81,30 @@ https://istio.io/latest/docs/setup/getting-started/#downloistioad
 
 Spinnaker is a Continuous Delivery (CD) tool that was spun out of Netflix that integrates natively with Kunernetes and offers a large range of integration and feature support. It has a wide range on configuration options, widely adopted, and quickly becoming the preferred CD tool for operation teams to deploy artifacts when new version are published to an artifact repository, into Kubernetes.
 
+The command can be either run from your local machine, or the bastion k8s node. In production or enterprise environments it will be the bastion.
 
 
-From within your local machine or the k8s cockpit after copying over the kubeconfig, run the following commands.
-
+#### Ensure `.kube` directory exists
+##### Note: Ensure the config file exists as well in `~/.kube/config`
 ```bash
-mkdir /root/.kube && chmod 0766 /root/.kube
+mkdir ~/.kube
 ```
 
-Copy contents of your kubeconfig to the cockpit and set permissions, in case you are using the cockpit and not your local machine to do the commands.
-
-```bash
-mkdir /root/.kube && chmod 0766 /root/.kube/config
-```
-
-Ensure the /root/.hal directory has writable permissions from the container with permissions 0766 at minimum.
-
+#### Ensure `.hal` directory exists
+Ensure the /root/.hal directory exists so the container can store and and persist the Hal config
 ```bash
 mkdir /root/.hal && chmod 0766 /root/.hal
 ```
 
 
 #### Start Halyard Container
-
-```
+This command starts and mounts the `.hal` and `.kube` directories to persist configs between restarts.
+```bash
 sudo docker run --name halyard -v ~/.hal:/home/spinnaker/.hal -v ~/.kube/config:/home/spinnaker/.kube/config -d gcr.io/spinnaker-marketplace/halyard:stable
 ```
 
 #### SSH into Hal Container
-```
+```bash
 sudo docker exec -it halyard bash
 ```
 
@@ -160,43 +155,42 @@ hal config storage edit --type s3
 hal deploy apply
 ```
 
-
-### Below command needs to be run on your local machine where you have helm binary
+## If you wish to not use S3, use MinIO
 #### Install Helm on local machine
-```
+```bash
 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 ```
 #### Add Helm stable repo
-```
+```bash
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
 ```
 #### Install minio in kubernetes cluster
-```
+```bash
 kubectl create ns spinnaker && \
 helm install minio --namespace spinnaker --set accessKey="minioadmin" --set secretKey="minioadmin" --set persistence.enabled=false stable/minio
 ```
 
 ### Back inside the halyard container
 #### For minio, disable s3 versioning
-```
+```bash
 mkdir ~/.hal/default/profiles
 echo "spinnaker.s3.versioning: false" > ~/.hal/default/profiles/front50-local.yml
 ```
 #### Set the storage type to minio/s3
-```
+```bash
 hal config storage s3 edit --endpoint http://minio:9000 --access-key-id "minioadmin" --secret-access-key "minioadmin"
 hal config storage s3 edit --path-style-access true
 hal config storage edit --type s3
 ```
 
 #### Change the service type to either Load Balancer or NodePort
-```
+```bash
 kubectl -n spinnaker edit svc spin-deck
 kubectl -n spinnaker edit svc spin-gate
 ```
 
 #### Update config and redeploy
-```
+```bash
 hal config security ui edit --override-base-url "http://<LoadBalancerIP>:9000"
 hal config security api edit --override-base-url "http://<LoadBalancerIP>:8084"
 hal deploy apply
